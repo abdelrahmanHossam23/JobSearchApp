@@ -1,0 +1,27 @@
+package com.example.myjobsearchapplication.data.dataSources.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.myjobsearchapplication.data.dataSources.local.entity.JobEntity
+import com.example.myjobsearchapplication.ui.common_components.JobStatus
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface JobDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(job: JobEntity)
+
+    @Query("DELETE FROM saved_jobs WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("SELECT * FROM saved_jobs")
+    fun getAll(): Flow<List<JobEntity>>
+
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_jobs WHERE id = :id)")
+    suspend fun isSaved(id: Long): Boolean
+
+    @Query("UPDATE saved_jobs SET status = :newStatus WHERE id = :id")
+    suspend fun updateJobStatus(id: Long, newStatus: JobStatus)
+}
