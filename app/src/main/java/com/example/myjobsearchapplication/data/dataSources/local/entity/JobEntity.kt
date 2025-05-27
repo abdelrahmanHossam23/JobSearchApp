@@ -4,7 +4,6 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.myjobsearchapplication.ui.common_components.JobStatus
 
-// data.local.entity.JobEntity.kt
 @Entity(tableName = "saved_jobs")
 data class JobEntity(
     @PrimaryKey val id: Long,

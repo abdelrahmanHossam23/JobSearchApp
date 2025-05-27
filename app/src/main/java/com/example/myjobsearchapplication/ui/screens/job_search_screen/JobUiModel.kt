@@ -1,7 +1,10 @@
 package com.example.myjobsearchapplication.ui.screens.job_search_screen
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import com.example.myjobsearchapplication.ui.common_components.JobStatus
 
+@Immutable
 data class JobUiModel(
     val id: Long,
     val title: String,

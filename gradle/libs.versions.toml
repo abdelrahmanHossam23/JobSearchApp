@@ -1,6 +1,6 @@
 [versions]
-agp = "8.3.2"
-kotlin = "2.1.0"
+agp = "8.4.2"
+kotlin = "2.1.20"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -8,6 +8,7 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.4"
 activityCompose = "1.9.1"
 composeBom = "2024.04.01"
+
 
 navigationCompose = "2.7.7"
 mockk = "1.13.3"
@@ -17,7 +18,7 @@ hiltAndroid = "2.55"
 hiltNavigationCompose = "1.2.0"
 coroutinesAndroid = "1.8.0"
 lottieCompose = "6.0.0"
-ksp = "2.1.0-1.0.29"
+ksp = "2.1.20-1.0.31"
 retrofit = "2.9.0"
 gson = "2.10.1"
 room = "2.7.1"
@@ -26,7 +27,6 @@ datastore = "1.1.1"
 coilCompose = "2.6.0"
 uiTestAndroid = "1.6.6"
 coreI18n = "1.0.0-beta01"
-
 kotlinxMetadataJvm = "0.9.0"
 
 [libraries]

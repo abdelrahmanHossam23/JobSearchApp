@@ -87,13 +87,8 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.0")
     implementation ("androidx.compose.ui:ui-graphics:1.5.0")
 
-    // navigation
     implementation(libs.androidx.navigation.compose)
 
-
-
-//    testImplementation(libs.mockk)
-//    testImplementation(libs.turbine)
 
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.lifecycle.runtime.compose)
@@ -127,8 +122,10 @@ dependencies {
 
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation ("com.google.accompanist:accompanist-navigation-animation:0.30.1")
+    implementation(libs.datastore)
 
 
-//    ksp("com.google.devtools.ksp:symbol-processing-api:2.1.0-1.0.13")
 }
 

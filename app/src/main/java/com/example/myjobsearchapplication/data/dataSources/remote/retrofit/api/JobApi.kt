@@ -10,6 +10,5 @@ interface JobApi {
     suspend fun fetchJobs(
         @Query("app_id") appId: String,
         @Query("app_key") appKey: String,
-        @Query("results_per_page") resultsPerPage: Int = 10
     ): Response<JobDataModel>
 }

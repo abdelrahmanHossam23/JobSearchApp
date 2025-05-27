@@ -2,6 +2,8 @@ package com.example.myjobsearchapplication.di
 
 import com.example.myjobsearchapplication.domain.repository.SavedJobRepository
 import com.example.myjobsearchapplication.domain.repository.TrackedJobsRepository
+import com.example.myjobsearchapplication.domain.usecase.DeleteAllSavedJobsUseCase
+import com.example.myjobsearchapplication.domain.usecase.DeleteAllTrackedJobsUseCase
 import com.example.myjobsearchapplication.domain.usecase.DeleteJobUseCase
 import com.example.myjobsearchapplication.domain.usecase.DeleteTrackedJobUseCase
 import com.example.myjobsearchapplication.domain.usecase.GetSavedJobsUseCase
@@ -45,6 +47,11 @@ object UseCaseModule {
         return UpdateSavedJobsStatusUseCase(repository)
     }
 
+    @Provides
+    fun provideDeleteAllSavedJobsUseCase(repository: SavedJobRepository): DeleteAllSavedJobsUseCase {
+        return DeleteAllSavedJobsUseCase(repository)
+    }
+
 
 
     @Provides
@@ -65,6 +72,11 @@ object UseCaseModule {
     @Provides
     fun provideUpdateTrackedJobUseCase(repository: TrackedJobsRepository): UpdateTrackedJobStatusUseCase {
         return UpdateTrackedJobStatusUseCase(repository)
+    }
+
+    @Provides
+    fun provideDeleteAllTrackedJobsUseCase(repository: TrackedJobsRepository): DeleteAllTrackedJobsUseCase {
+        return DeleteAllTrackedJobsUseCase(repository)
     }
 
 

@@ -1,7 +1,8 @@
 package com.example.myjobsearchapplication.domain.model
 
+import androidx.compose.runtime.Immutable
 import com.example.myjobsearchapplication.ui.common_components.JobStatus
-
+@Immutable
 data class JobsDomainModel(
 
 val id: Long,

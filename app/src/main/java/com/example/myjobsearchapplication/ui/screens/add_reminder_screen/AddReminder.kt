@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.myjobsearchapplication.ui.common_components.TopBar
 import com.example.myjobsearchapplication.ui.screens.add_reminder_screen.viewmodel.ReminderViewModel
 import java.time.Instant
 import java.time.LocalTime
@@ -55,7 +56,6 @@ fun ReminderSetupScreen(
     reminderId: Int? = null,
     onBackNavigation: () -> Unit
 ) {
-//    val reminderListViewModel: ReminderListViewModel = hiltViewModel()
     val reminders by viewModel.reminders.collectAsState()
     val reminder = reminders.find { it.id == reminderId}
 
@@ -95,18 +95,8 @@ fun ReminderSetupScreen(
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Add Reminder",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        scrolledContainerColor = MaterialTheme.colorScheme.tertiary
-                    ),
+                TopBar(
+                    topBarTitle = "Add Reminder",
                     navigationIcon = {
                         IconButton(onClick = onBackNavigation) {
                             Icon(
@@ -115,24 +105,7 @@ fun ReminderSetupScreen(
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
-                    },
-                    actions = {
-//                        IconButton(onClick = { /* Handle search */ }) {
-//                            Icon(
-//                                imageVector = Icons.Default.Search,
-//                                contentDescription = "Search",
-//                                tint = MaterialTheme.colorScheme.onPrimary
-//                            )
-//                        }
-                        IconButton(onClick = { /* Handle more options */ }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    },
-                    scrollBehavior = scrollBehavior
+                    }
                 )
             }
         ) { innerPadding ->
@@ -151,7 +124,6 @@ fun ReminderSetupScreen(
 
                     modifier = Modifier
                         .fillMaxWidth()
-//                .padding(16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -163,12 +135,10 @@ fun ReminderSetupScreen(
 
                     modifier = Modifier
                         .fillMaxWidth()
-//                .padding(16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Current selection display
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -179,7 +149,7 @@ fun ReminderSetupScreen(
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showDatePicker = true }) {
-                        Text("Change Date")
+                        Text("Change Date", color = MaterialTheme.colorScheme.onSecondary)
                     }
                 }
 
@@ -195,7 +165,7 @@ fun ReminderSetupScreen(
                         modifier = Modifier.weight(1f)
                     )
                     Button(onClick = { showTimePicker = true }) {
-                        Text("Change Time")
+                        Text("Change Time", color = MaterialTheme.colorScheme.onSecondary)
                     }
                 }
 
@@ -227,10 +197,9 @@ fun ReminderSetupScreen(
                     enabled = viewModel.selectedTime.value != null && reminderTitle.isNotBlank() && reminderText.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Set Reminder")
+                    Text("Set Reminder", color = MaterialTheme.colorScheme.onSecondary)
                 }
 
-                // Dialogs
                 if (showDatePicker) {
                     val dateState = rememberDatePickerState()
                     DatePickerDialog(
@@ -248,7 +217,7 @@ fun ReminderSetupScreen(
                                     showDatePicker = false
                                 }
                             ) {
-                                Text("OK")
+                                Text("OK", color = MaterialTheme.colorScheme.onSecondary)
                             }
                         }
                     ) {
@@ -271,9 +240,3 @@ fun ReminderSetupScreen(
     }
 
 }
-
-//@Preview
-//@Composable
-//private fun AddReminderPrev() {
-//    ReminderSetupScreen()
-//}

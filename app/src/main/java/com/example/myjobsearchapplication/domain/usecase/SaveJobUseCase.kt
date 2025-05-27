@@ -29,3 +29,10 @@ class UpdateSavedJobsStatusUseCase(
     suspend operator fun invoke(id: Long, newStatus: JobStatus) =
         repository.updateJobStatus(id, newStatus)
 }
+
+class DeleteAllSavedJobsUseCase(
+    private val repository: SavedJobRepository
+) {
+    suspend operator fun invoke() =
+        repository.deleteAll()
+}

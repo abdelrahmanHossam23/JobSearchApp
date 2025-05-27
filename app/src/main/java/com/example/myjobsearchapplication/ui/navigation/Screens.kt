@@ -15,6 +15,6 @@ sealed class Screens (val route: String){
     data object SavedJobsScreen: Screens("saved_jobs_screen")
     data object RemindersScreen: Screens("reminders_screen")
     data object TrackerScreen: Screens("tracker_screen")
-    data object LoginScreen: Screens("tracker_screen")
-    data object SignUpScreen: Screens("tracker_screen")
+    data object LoginScreen: Screens("login_screen")
+    data object SignUpScreen: Screens("signup_screen")
 }

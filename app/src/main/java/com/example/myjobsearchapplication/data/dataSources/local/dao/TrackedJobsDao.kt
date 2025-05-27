@@ -24,7 +24,7 @@ interface TrackedJobsDao {
     @Query("UPDATE tracked_jobs SET status = :newStatus WHERE id = :id")
     suspend fun updateJobStatus(id: Long, newStatus: JobStatus)
 
-//    @Query("SELECT EXISTS(SELECT 1 FROM tracked_jobs WHERE id = :id)")
-//    suspend fun isSaved(id: Long): Boolean
+    @Query("DELETE FROM tracked_jobs")
+    suspend fun deleteAll()
 }
 

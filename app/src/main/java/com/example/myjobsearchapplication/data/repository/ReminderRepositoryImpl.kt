@@ -13,11 +13,12 @@ import com.example.myjobsearchapplication.data.dataSources.local.entity.Reminder
 import com.example.myjobsearchapplication.data.workers.NotificationWorker
 import com.example.myjobsearchapplication.domain.repository.ReminderRepository
 import com.example.myjobsearchapplication.ui.common_components.NotificationHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
-//import kotlin.time.Duration
 
 class ReminderRepositoryImpl(
     private val context: Context,
@@ -120,4 +121,10 @@ class ReminderRepositoryImpl(
     }
 
     override fun getAllReminders(): Flow<List<ReminderEntity>> = reminderDao.getAllReminders()
+
+    override suspend fun deleteAll() {
+        withContext(Dispatchers.IO) {
+            reminderDao.deleteAll()
+        }
+    }
 }

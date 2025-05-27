@@ -8,12 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myjobsearchapplication.domain.repository.ReminderRepository
+import com.example.myjobsearchapplication.domain.usecase.DeleteAllRemindersUseCase
 import com.example.myjobsearchapplication.domain.usecase.DeleteReminderUseCase
 import com.example.myjobsearchapplication.domain.usecase.ScheduleReminderUseCase
 import com.example.myjobsearchapplication.domain.usecase.UpdateReminderUseCase
 import com.example.myjobsearchapplication.ui.mapper.toReminderListUi
 import com.example.myjobsearchapplication.ui.screens.add_reminder_screen.ReminderUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -31,7 +33,8 @@ class ReminderViewModel @Inject constructor(
     private val scheduleReminderUseCase: ScheduleReminderUseCase,
     private val updateReminderUseCase: UpdateReminderUseCase,
     private val deleteReminderUseCase: DeleteReminderUseCase,
-    private val repository: ReminderRepository
+    private val deleteAllRemindersUseCase: DeleteAllRemindersUseCase,
+    private val repository: ReminderRepository,
 ) : ViewModel() {
 
     val reminders: StateFlow<List<ReminderUiModel>> = repository.getAllReminders()
@@ -105,12 +108,6 @@ class ReminderViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun checkAndDeleteExpiredReminders() {
-//        val now = LocalDateTime.now()
-//        reminders.value.forEach { reminder ->
-//            if (reminder.reminderTime.isBefore(now)) {
-//                deleteReminderUseCase(reminder.id)
-//            }
-//        }
         repository.getAllReminders().collect { reminderList ->
             val now = LocalDateTime.now()
             reminderList
@@ -121,16 +118,10 @@ class ReminderViewModel @Inject constructor(
         }
     }
 
-//    val visiblePermissionDialogQueue = mutableStateListOf<String>()
-//
-//    fun dismissDialog(){
-//        visiblePermissionDialogQueue.removeAt(0)
-//    }
-//
-//    fun onPermissionResult(permission: String, isGranted: Boolean){
-//        if(!isGranted && !visiblePermissionDialogQueue.contains(permission)) {
-//            visiblePermissionDialogQueue.add(permission)
-//        }
-//
-//    }
+    fun deleteAllReminders() {
+        viewModelScope.launch(Dispatchers.IO) {
+            deleteAllRemindersUseCase()
+        }
+    }
+
 }

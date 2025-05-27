@@ -20,14 +20,52 @@ class SignInViewModel @Inject constructor(
     fun onEvent(event: SignInEvent) {
         when (event) {
             is SignInEvent.EmailChanged -> {
-                _state.value = state.value.copy(email = event.email)
+                _state.value = state.value.copy(
+                    email = event.email,
+                    emailError = validateEmail(event.email)
+                )
             }
+
             is SignInEvent.PasswordChanged -> {
-                _state.value = state.value.copy(password = event.password)
+                _state.value = state.value.copy(
+                    password = event.password,
+                    passwordError = validatePassword(event.password)
+                )
             }
+
             SignInEvent.Submit -> {
-                signIn()
+                if (validateForm()) {
+                    signIn()
+                }
             }
+        }
+    }
+
+    private fun validateForm(): Boolean {
+        val emailError = validateEmail(state.value.email)
+        val passwordError = validatePassword(state.value.password)
+
+        _state.value = state.value.copy(
+            emailError = emailError,
+            passwordError = passwordError
+        )
+
+        return emailError == null && passwordError == null
+    }
+
+    private fun validateEmail(email: String): String? {
+        return when {
+            email.isBlank() -> "Email cannot be empty"
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Invalid email format"
+            else -> null
+        }
+    }
+
+    private fun validatePassword(password: String): String? {
+        return when {
+            password.isBlank() -> "Password cannot be empty"
+            password.length < 6 -> "Password must be at least 6 characters"
+            else -> null
         }
     }
 
@@ -42,20 +80,24 @@ class SignInViewModel @Inject constructor(
                 _state.value = state.value.copy(isSuccess = true, isLoading = false)
             } catch (e: Exception) {
                 _state.value = state.value.copy(
-                    error = e.message,
+                    error = e.message ?: "Sign in failed",
                     isLoading = false
                 )
             }
         }
     }
+
 }
+
 
 data class SignInState(
     val email: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null
 )
 
 sealed class SignInEvent {

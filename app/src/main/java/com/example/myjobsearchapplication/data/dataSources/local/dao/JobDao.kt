@@ -24,4 +24,7 @@ interface JobDao {
 
     @Query("UPDATE saved_jobs SET status = :newStatus WHERE id = :id")
     suspend fun updateJobStatus(id: Long, newStatus: JobStatus)
+
+    @Query("DELETE FROM saved_jobs")
+    suspend fun deleteAll()
 }

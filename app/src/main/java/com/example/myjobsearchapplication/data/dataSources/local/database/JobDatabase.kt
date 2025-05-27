@@ -13,6 +13,6 @@ import com.example.myjobsearchapplication.data.dataSources.local.entity.TrackedJ
     exportSchema = false
 )
 abstract class JobDatabase : RoomDatabase() {
-    abstract fun jobDao(): JobDao // This is what Hilt will provide
+    abstract fun jobDao(): JobDao
     abstract fun trackedDao(): TrackedJobsDao
 }

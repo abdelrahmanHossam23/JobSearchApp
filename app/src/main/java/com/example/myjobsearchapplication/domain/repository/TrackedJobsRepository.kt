@@ -8,4 +8,5 @@ interface TrackedJobsRepository {
     fun getSavedJobs(): Flow<List<JobsDomainModel>>
     suspend fun deleteJob(id: Long)
     suspend fun updateJobStatus(id: Long, newStatus: JobStatus)
+    suspend fun deleteAll()
 }

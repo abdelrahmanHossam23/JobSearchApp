@@ -14,10 +14,9 @@ import com.example.myjobsearchapplication.R
 
 class NotificationHelper(private val context: Context) {
 
-    private val channelId = "reminders"  // The ID for the notification channel
+    private val channelId = "reminders"
 
     init {
-        // Create the notification channel if it doesn't exist
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel()
         }
@@ -32,7 +31,6 @@ class NotificationHelper(private val context: Context) {
             description = descriptionText
         }
 
-        // Register the channel with the system
         val notificationManager: NotificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)

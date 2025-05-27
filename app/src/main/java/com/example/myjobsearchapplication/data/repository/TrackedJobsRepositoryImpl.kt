@@ -35,4 +35,10 @@ class TrackedJobsRepositoryImpl @Inject constructor(private val dao: TrackedJobs
             dao.updateJobStatus(id, newStatus)
         }
 
+    override suspend fun deleteAll() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+        }
+    }
+
 }

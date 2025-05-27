@@ -6,7 +6,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import com.example.myjobsearchapplication.SecondActivity
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -74,7 +73,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myjobsearchapplication.ui.navigation.Screens
-import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.MainAppBar
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchViewModel
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchWidgetState
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.viewmodel.FilterOptions
@@ -82,11 +80,7 @@ import com.example.myjobsearchapplication.ui.screens.saved_jobs.viewmodel.SavedJ
 
 @Composable
 fun BottomBar(
-    onJobSearchNavigate:  () -> Unit,
-    onSavedJobsNavigate: () -> Unit,
-    onTrackerNavigate:  () -> Unit,
-    onRemindersNavigate:  () -> Unit,
-//    navController: NavController,
+    navController: NavController,
     currentRoute: String?
 ) {
 
@@ -95,37 +89,28 @@ fun BottomBar(
             title = "Home",
             selectedIcon = Icons.Filled.Home,
             unSelectedIcon = Icons.Outlined.Home,
-            route =
-            Screens.JobSearchScreen.route
-//            onJobSearchNavigate
+            route = Screens.JobSearchScreen.route
         ),
         BottomNavigationItem(
             title = "Saved Jobs",
             selectedIcon = Icons.Filled.Bookmark,
             unSelectedIcon = Icons.Outlined.BookmarkBorder,
-            route =
-            Screens.SavedJobsScreen.route
-//            onSavedJobsNavigate
+            route = Screens.SavedJobsScreen.route
         ),
         BottomNavigationItem(
             title = "Tracker",
             selectedIcon = Icons.Filled.QueryStats,
             unSelectedIcon = Icons.Outlined.QueryStats,
-            route =
-            Screens.TrackerScreen.route
-//            onTrackerNavigate
+            route = Screens.TrackerScreen.route
         ),
         BottomNavigationItem(
             title = "Reminder",
             selectedIcon = Icons.Filled.Notifications,
             unSelectedIcon = Icons.Outlined.Notifications,
-            route =
-            Screens.RemindersScreen.route
-//            onRemindersNavigate
+            route = Screens.RemindersScreen.route
         )
     )
 
-//    var selectedItemIndex by rememberSaveable { mutableStateOf(0) }
 
 
     NavigationBar(
@@ -134,19 +119,12 @@ fun BottomBar(
         navigationBarItems.forEach { bottomNavigationItem ->
             NavigationBarItem(
                 selected =
-//                selectedItemIndex == index
                 currentRoute == bottomNavigationItem.route
                 ,
                 onClick = {
-//                    selectedItemIndex = index
-//                    bottomNavigationItem.route()
 
-                    when (bottomNavigationItem.route) {
-                        Screens.JobSearchScreen.route -> onJobSearchNavigate()
-                        Screens.SavedJobsScreen.route -> onSavedJobsNavigate()
-                        Screens.TrackerScreen.route -> onTrackerNavigate()
-                        Screens.RemindersScreen.route -> onRemindersNavigate()
-                    }
+                    navController.navigate(bottomNavigationItem.route)
+
                 },
                 label = {
                     Text(
@@ -155,19 +133,13 @@ fun BottomBar(
                     )
                 },
                 icon = {
-//                        Icon(
-//                            imageVector = if (selectedItemIndex == index) {
-//                                bottomNavigationItem.selectedIcon
-//                            } else bottomNavigationItem.unSelectedIcon,
-//                            contentDescription = "",
-//                            tint = MaterialTheme.colorScheme.onSurface
-//                        )
                     Icon(
                         imageVector = if (currentRoute == bottomNavigationItem.route) {
                             bottomNavigationItem.selectedIcon
                         } else bottomNavigationItem.unSelectedIcon,
                         contentDescription = bottomNavigationItem.title,
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = if (currentRoute == bottomNavigationItem.route) MaterialTheme.colorScheme.onSecondary
+                        else MaterialTheme.colorScheme.onPrimary
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -186,7 +158,6 @@ data class BottomNavigationItem(
     val title: String,
     val selectedIcon: ImageVector,
     val unSelectedIcon: ImageVector,
-//    val route: () -> Unit,
     val route: String
 )
 

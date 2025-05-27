@@ -34,23 +34,23 @@ import androidx.compose.ui.unit.sp
 
 
 val Typography = Typography(
-    titleLarge = TextStyle( // App Bar Title, Job Titles
+    titleLarge = TextStyle(
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold
     ),
-    titleMedium = TextStyle( // Job Title in Card
+    titleMedium = TextStyle(
         fontSize = 18.sp,
         fontWeight = FontWeight.SemiBold
     ),
-    titleSmall = TextStyle( // Company Name
+    titleSmall = TextStyle(
         fontSize = 16.sp,
         fontWeight = FontWeight.Medium
     ),
-    bodyMedium = TextStyle( // Location & Salary
+    bodyMedium = TextStyle(
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal
     ),
-    labelLarge = TextStyle( // Button Text
+    labelLarge = TextStyle(
         fontSize = 16.sp,
         fontWeight = FontWeight.Bold
     )

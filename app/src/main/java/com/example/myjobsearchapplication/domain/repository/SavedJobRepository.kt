@@ -10,4 +10,5 @@ interface SavedJobRepository{
     suspend fun deleteJob(id: Long)
     suspend fun isJobSaved(id: Long): Boolean
     suspend fun updateJobStatus(id: Long, newStatus: JobStatus)
+    suspend fun deleteAll()
 }

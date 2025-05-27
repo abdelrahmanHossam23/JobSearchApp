@@ -1,6 +1,7 @@
 package com.example.myjobsearchapplication.domain.usecase
 
 import com.example.myjobsearchapplication.domain.repository.ReminderRepository
+import com.example.myjobsearchapplication.domain.repository.SavedJobRepository
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -44,4 +45,10 @@ class DeleteReminderUseCase @Inject constructor(
     ) = repository.cancelReminder(
         reminderId = reminderId,
     )
+}
+
+class DeleteAllRemindersUseCase @Inject constructor(
+    private val repository: ReminderRepository
+) {
+    suspend operator fun invoke() = repository.deleteAll()
 }

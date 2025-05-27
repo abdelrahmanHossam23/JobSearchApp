@@ -27,9 +27,7 @@ class SavedJobRepositoryImpl @Inject constructor(private val dao: JobDao) : Save
         dao.delete(id)
     }
 
-//    override suspend fun isJobSaved(id: Long): Boolean {
-//        return dao.isSaved(id)
-//    }
+
 private val savedIdsCache = mutableSetOf<Long>()
 
     override suspend fun isJobSaved(id: Long): Boolean {
@@ -46,4 +44,11 @@ private val savedIdsCache = mutableSetOf<Long>()
         withContext(Dispatchers.IO) {
             dao.updateJobStatus(id, newStatus)
         }
+
+    override suspend fun deleteAll() {
+        withContext(Dispatchers.IO) {
+            dao.deleteAll()
+            savedIdsCache.clear()
+        }
+    }
 }

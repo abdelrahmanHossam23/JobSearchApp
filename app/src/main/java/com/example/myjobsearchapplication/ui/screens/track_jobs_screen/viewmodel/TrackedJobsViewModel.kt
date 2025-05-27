@@ -2,6 +2,8 @@ package com.example.myjobsearchapplication.ui.screens.track_jobs_screen.viewmode
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myjobsearchapplication.domain.model.JobsDomainModel
+import com.example.myjobsearchapplication.domain.usecase.DeleteAllSavedJobsUseCase
+import com.example.myjobsearchapplication.domain.usecase.DeleteAllTrackedJobsUseCase
 import com.example.myjobsearchapplication.domain.usecase.DeleteJobUseCase
 import com.example.myjobsearchapplication.domain.usecase.DeleteTrackedJobUseCase
 import com.example.myjobsearchapplication.domain.usecase.GetSavedJobsUseCase
@@ -29,7 +31,8 @@ class TrackedJobsViewModel @Inject constructor(
     private val saveTrackedJobUseCase: SaveTrackedJobUseCase,
     private val getTrackedJobsUseCase: GetTrackedJobsUseCase,
     private val deleteTrackedJobUseCase: DeleteTrackedJobUseCase,
-    private val updateTrackedJobStatusUseCase: UpdateTrackedJobStatusUseCase
+    private val updateTrackedJobStatusUseCase: UpdateTrackedJobStatusUseCase,
+    private val deleteAllTrackedJobsUseCase: DeleteAllTrackedJobsUseCase
 ) : ViewModel() {
 
     val savedJobs = getTrackedJobsUseCase()
@@ -38,7 +41,7 @@ class TrackedJobsViewModel @Inject constructor(
         }
         .stateIn(
             viewModelScope,
-            SharingStarted.WhileSubscribed(5000), // Stop after 5 seconds of inactivity
+            SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
 
@@ -57,6 +60,12 @@ class TrackedJobsViewModel @Inject constructor(
     fun updateJobStatus(jobId: Long, newStatus: JobStatus) {
         viewModelScope.launch(Dispatchers.IO) {
             updateTrackedJobStatusUseCase(jobId, newStatus)
+        }
+    }
+
+    fun deleteAllJobs() {
+        viewModelScope.launch(Dispatchers.IO) {
+            deleteAllTrackedJobsUseCase()
         }
     }
 }

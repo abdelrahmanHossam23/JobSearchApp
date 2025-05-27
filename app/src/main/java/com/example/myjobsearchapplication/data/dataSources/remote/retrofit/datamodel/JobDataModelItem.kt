@@ -1,5 +1,8 @@
 package com.example.myjobsearchapplication.data.dataSources.remote.retrofit.datamodel
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 data class JobDataModelItem(
     val id: Long,
     val title: String,

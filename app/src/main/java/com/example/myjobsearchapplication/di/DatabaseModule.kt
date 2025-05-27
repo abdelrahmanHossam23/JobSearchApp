@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 
 @Module
-@InstallIn(SingletonComponent::class) // Lives throughout the app's lifecycle
+@InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
     @Provides

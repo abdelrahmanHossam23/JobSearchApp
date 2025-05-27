@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myjobsearchapplication.R
 import com.example.myjobsearchapplication.ui.common_components.JobStatus
-import com.example.myjobsearchapplication.ui.screens.job_search_screen.HandleUnSaveJob
 
 @Composable
 fun AnimateShimmerJobList(paddingValues: PaddingValues) {
@@ -68,7 +67,7 @@ fun AnimateShimmerJobList(paddingValues: PaddingValues) {
             )
 
             val transition =
-                rememberInfiniteTransition(label = "") // to animate our shimmer as long as we want
+                rememberInfiniteTransition(label = "")
             val translateAnim = transition.animateFloat(
                 initialValue = 0f,
                 targetValue = 1000f,

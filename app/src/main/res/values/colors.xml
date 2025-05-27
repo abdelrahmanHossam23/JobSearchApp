@@ -14,4 +14,7 @@
     <color name="DesertWhite">#FFF7F7F7</color>
     <color name="SandYellow">#FFFFBD64</color>
     <color name="LightBlue">#FF9AD9FF</color>
+
+    <color name="CoolGray800">#FF17202F</color>
+
 </resources>

@@ -20,4 +20,5 @@ interface ReminderRepository {
 
     suspend fun cancelReminder(reminderId: Int)
     fun getAllReminders(): Flow<List<ReminderEntity>>
+    suspend fun deleteAll()
 }

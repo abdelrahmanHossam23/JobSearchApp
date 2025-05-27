@@ -46,6 +46,12 @@ import com.example.myjobsearchapplication.ui.screens.job_search_screen.JobItem
 
 import android.content.Intent
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -59,6 +65,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -92,9 +99,11 @@ import androidx.compose.material3.TopAppBar
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -111,71 +120,92 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myjobsearchapplication.SecondActivity
 import com.example.myjobsearchapplication.ui.common_components.BottomBar
+import com.example.myjobsearchapplication.ui.common_components.DeleteAlertDialog
 import com.example.myjobsearchapplication.ui.common_components.JobStatus
+import com.example.myjobsearchapplication.ui.common_components.TopBar
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.JobUiModel
-import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.MainAppBar
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchViewModel
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchWidgetState
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.viewmodel.FilterOptions
 import com.example.myjobsearchapplication.ui.screens.saved_jobs.viewmodel.SavedJobViewModel
 import com.example.myjobsearchapplication.ui.screens.track_jobs_screen.viewmodel.TrackedJobsViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackerListScreen(
     onJobItemClicked: (jobItem: JobUiModel) -> Unit,
-    onSavedJobsNavigate: () -> Unit,
-    onJobSearchNavigate:  () -> Unit,
-    onRemindersNavigate:  () -> Unit,
-    onTrackerNavigate:  () -> Unit,
     navController: NavController
 ) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     val trackedJobViewModel: TrackedJobsViewModel = hiltViewModel()
+    val savedJobViewModel: SavedJobViewModel = hiltViewModel()
+
 
     val jobList by trackedJobViewModel.savedJobs.collectAsStateWithLifecycle()
+
+    var showDeleteAllTrackedJobsDialog by remember { mutableStateOf(false) }
 
 
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+        var expanded by remember { mutableStateOf(false) }
+
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = "Tracked Jobs",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                            },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        scrolledContainerColor = MaterialTheme.colorScheme.tertiary
-                    ),
-                    actions = {
-                        IconButton(onClick = {}) {
+                TopBar(
+                    topBarTitle = "Tracked Jobs",
+                    topBarActions = {
+                        IconButton(
+                            onClick = {expanded = true}
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = "",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
-                              },
-                    scrollBehavior = scrollBehavior
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Clear All") },
+                                onClick = {
+                                    showDeleteAllTrackedJobsDialog = true
+                                    expanded = false
+                                }
+                            )
+                        }
+
+                        if (showDeleteAllTrackedJobsDialog) {
+                            DeleteAlertDialog(
+                                alertText = "Are you sure you want to delete all tracked Job?",
+                                onDismiss = { showDeleteAllTrackedJobsDialog = false },
+                                onConfirm = {
+                                    jobList.forEach { job ->
+                                        savedJobViewModel.updateJobStatus(job.id, JobStatus.NOT_APPLIED)
+                                    }
+                                    trackedJobViewModel.deleteAllJobs()
+                                    showDeleteAllTrackedJobsDialog = false
+                                }
+                            )
+                        }
+                    }
                 )
                      },
             bottomBar = {
                 BottomBar(
-                    onJobSearchNavigate = onJobSearchNavigate, onSavedJobsNavigate = onSavedJobsNavigate, onTrackerNavigate = onTrackerNavigate, onRemindersNavigate = onRemindersNavigate,
-                    currentRoute = currentRoute
+                    currentRoute = currentRoute,
+                    navController = navController
                 )
             }
         ) { innerPadding ->
@@ -186,21 +216,38 @@ fun TrackerListScreen(
                     .padding(innerPadding)
             ) {
 
+                val visibleItems = remember { mutableStateListOf<Boolean>() }
+
+                LaunchedEffect(jobList.size) {
+                    visibleItems.clear()
+                    visibleItems.addAll(List(jobList.size) { false })
+
+                    jobList.indices.forEach { index ->
+                        delay(100L * index)
+                        visibleItems[index] = true
+                    }
+                }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-//                       .weight(1f)
-//                        .padding(innerPadding)
                 ) {
-                    items(jobList) { jobItem ->
-                        TrackJobCard(
-                            job = jobItem,
-                            onJobItemClicked = {
-                                onJobItemClicked(it)
-                            },
-                            onTrack = {trackedJobViewModel.saveJob(jobItem)},
-//                            onUpdateJobStatus = {trackedJobViewModel.updateJobStatus(jobItem.id, JobStatus.APPLIED)}
-                        )
+                    itemsIndexed(jobList) { index, jobItem ->
+
+
+                        AnimatedVisibility(
+                            visible = visibleItems.getOrNull(index) ?: false,
+                            enter = fadeIn() + slideInVertically { it / 2 },
+                            exit = fadeOut() + slideOutVertically { it / 2 }
+                        ){
+                            TrackJobCard(
+                                job = jobItem,
+                                onJobItemClicked = {
+                                    onJobItemClicked(it)
+                                }
+                            )
+                        }
+
                     }
                 }
             }

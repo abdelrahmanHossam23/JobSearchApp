@@ -1,7 +1,7 @@
 package com.example.myjobsearchapplication
 
-import AuthNavigation
 import android.animation.ObjectAnimator
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -34,6 +34,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.myjobsearchapplication.ui.common_components.BottomBar
+import com.example.myjobsearchapplication.ui.common_components.ThemeManager
 import com.example.myjobsearchapplication.ui.navigation.AppNavHost
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.viewmodel.MainViewModel
 import com.example.myjobsearchapplication.ui.theme.JobSearchApplicationTheme
@@ -49,44 +50,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         enableEdgeToEdge()
-        installSplashScreen().apply {
-            setKeepOnScreenCondition {
-                !viewModel.isReady.value
-            }
 
-//            setOnExitAnimationListener { screen ->
-//                val zoomX = ObjectAnimator.ofFloat(
-//                    screen.iconView,
-//                    View.SCALE_X,
-//                    0.4f,
-//                    0.0f
-//                )
-//                zoomX.interpolator = OvershootInterpolator()
-//                zoomX.duration = 500L
-//                zoomX.doOnEnd { screen.remove() }
-//
-//                val zoomY = ObjectAnimator.ofFloat(
-//                    screen.iconView,
-//                    View.SCALE_Y,
-//                    0.4f,
-//                    0.0f
-//                )
-//                zoomY.interpolator = OvershootInterpolator()
-//                zoomY.duration = 500L
-//                zoomY.doOnEnd { screen.remove() }
-//
-//                zoomX.start()
-//                zoomY.start()
-//            }
+        val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val savedTheme = sharedPref.getBoolean("dark_theme", false)
+        ThemeManager.isDarkTheme.value = savedTheme
 
+        val splashScreen = installSplashScreen()
+
+        splashScreen.setKeepOnScreenCondition {
+            !viewModel.isReady.value
         }
         setContent {
-            JobSearchApplicationTheme {
+            JobSearchApplicationTheme(darkTheme = ThemeManager.isDarkTheme.value) {
 
                 AppNavHost()
-//                AuthNavigation(onAuthSuccess = {
-//                    // Navigate to home screen after successful auth
-//                })
             }
 
         }

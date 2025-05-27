@@ -1,10 +1,21 @@
 package com.example.myjobsearchapplication.ui.screens.job_search_screen
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -21,16 +32,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Save
@@ -56,6 +71,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -63,6 +82,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -88,22 +108,57 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.myjobsearchapplication.SecondActivity
 import com.example.myjobsearchapplication.ui.common_components.BottomBar
 import com.example.myjobsearchapplication.ui.common_components.ErrorSection
+import com.example.myjobsearchapplication.ui.common_components.TopBar
 import com.example.myjobsearchapplication.ui.common_components.shimmer.AnimateShimmerJobList
-import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.MainAppBar
-import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchAppBar2
+import com.example.myjobsearchapplication.ui.navigation.LogInManager
+import com.example.myjobsearchapplication.ui.navigation.Screens
+import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchAppBar
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchViewModel
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.searchBar.SearchWidgetState
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.viewmodel.FilterOptions
 import com.example.myjobsearchapplication.ui.screens.job_search_screen.viewmodel.JobSearchViewModel
 import com.example.myjobsearchapplication.ui.screens.saved_jobs.viewmodel.SavedJobViewModel
 import com.example.myjobsearchapplication.ui.screens.track_jobs_screen.viewmodel.TrackedJobsViewModel
-import com.example.myjobsearchapplication.ui.theme.Cool1
+import com.example.myjobsearchapplication.ui.theme.SpaceCadetBlue
 import com.example.myjobsearchapplication.ui.theme.Cyan
-import com.example.myjobsearchapplication.ui.theme.LightCyan
+import com.example.myjobsearchapplication.ui.theme.DarkCeruleanBlue
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.WorkHistory
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.derivedStateOf
+
+import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.example.myjobsearchapplication.R
+import com.example.myjobsearchapplication.ui.common_components.ThemeManager
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -111,10 +166,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun JobSearchScreen(
     onJobItemClicked: (jobItem: JobUiModel) -> Unit,
-    onSavedJobsNavigate: () -> Unit,
-    onJobSearchNavigate:  () -> Unit,
-    onRemindersNavigate:  () -> Unit,
-    onTrackerNavigate:  () -> Unit,
     navController: NavController
 ) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
@@ -124,173 +175,297 @@ fun JobSearchScreen(
 
     val savedJobViewModel: SavedJobViewModel = hiltViewModel()
 
-//    val jobList by jobSearchViewModel.jobList.collectAsStateWithLifecycle()
     val jobSearchState  by jobSearchViewModel.jobSearchState.collectAsStateWithLifecycle()
 
 
-//    val searchQuery by jobSearchViewModel.searchQuery.collectAsStateWithLifecycle()
-//    val filterOptions by jobSearchViewModel.filterOptions.collectAsStateWithLifecycle()
 
-
-    val trackedJobViewModel: TrackedJobsViewModel = hiltViewModel()
-
-
-
-    var showFilterMenu by remember { mutableStateOf(true) }
-
-    LaunchedEffect(key1 = true) {
-        jobSearchViewModel.fetchJobs()
+    LaunchedEffect(Unit) {
+        jobSearchViewModel.fetchJobsIfNeeded()
     }
 
 
-    val searchWidgetState by searchViewModel.searchWidgetState
     val searchTextState by searchViewModel.searchTextState
 
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val context = LocalContext.current
+    val logInManager = remember { LogInManager(context) }
+
 
     Surface(
         modifier = Modifier.fillMaxSize()
+
     ) {
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                MainAppBar(
-                    searchWidgetState = searchWidgetState,
-                    searchTextState = searchTextState,
-                    onTextChange = {
-                        searchViewModel.updateSearchTextState(newValue = it)
-                    },
-                    onCloseClicked = {
-                        searchViewModel.updateSearchWidgetState(newValue = SearchWidgetState.CLOSED)
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        ModalNavigationDrawer(
+            drawerContent = {
+                ModalDrawerSheet (
+                    modifier = Modifier.width(280.dp),
+                    drawerShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
+                ){
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(25.dp))
 
-                    },
-                    onSearchClicked = {
-                        Log.d("Searched Text", it)
-                    },
-                    onSearchTriggered = {
-                        searchViewModel.updateSearchWidgetState(newValue = SearchWidgetState.OPENED)
-                    }
-                )
-            },
-            bottomBar = {
-                BottomBar(
-                    onJobSearchNavigate = onJobSearchNavigate, onSavedJobsNavigate = onSavedJobsNavigate, onTrackerNavigate = onTrackerNavigate, onRemindersNavigate = onRemindersNavigate,
-                    currentRoute = currentRoute
-//                    navController = navController
-                )
-            }
-        ) { innerPadding ->
-
-            when {
-                jobSearchState.isLoading -> {
-                    AnimateShimmerJobList(innerPadding)
-                }
-
-                jobSearchState.isError -> {
-                    jobSearchState.errorMessage?.let {
-                        ErrorSection(
-                            onRefreshButtonClicked = {
-                                coroutineScope.launch {
-                                    jobSearchViewModel.fetchJobs()
-                                }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val newTheme = !ThemeManager.isDarkTheme.value
+                                ThemeManager.isDarkTheme.value = newTheme
+                                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putBoolean("dark_theme", newTheme)
+                                    .apply()
+                            }
+                            .padding(NavigationDrawerItemDefaults.ItemPadding),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector =
+                            if (ThemeManager.isDarkTheme.value) Icons.Filled.DarkMode else Icons.Filled.LightMode,
+                            contentDescription = "Theme Toggle"
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(text =
+                        if (ThemeManager.isDarkTheme.value) "Dark Theme" else "Light Theme")
+                        Spacer(modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = ThemeManager.isDarkTheme.value,
+                            onCheckedChange = { isChecked ->
+                                ThemeManager.isDarkTheme.value = isChecked
+                                context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putBoolean("dark_theme", isChecked)
+                                    .apply()
                             },
-                            customErrorExceptionUiModel = it
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                logInManager.logOut()
+                                navController.navigate(Screens.LoginScreen.route) {
+                                    popUpTo(0)
+                                }
+                                scope.launch {
+                                    drawerState.close()
+                                }
+                            }
+                            .padding(NavigationDrawerItemDefaults.ItemPadding),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector =
+                            Icons.Default.Logout
+                            ,
+                            contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Logout",
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
+            },
+            drawerState = drawerState,
+        ){
+            Scaffold(
+                snackbarHost = {
+                    SnackbarHost(hostState = snackbarHostState) { data ->
+                        Snackbar(
+                            snackbarData = data,
+                            containerColor = Color.DarkGray,
+                            contentColor = Color.White,
+                            actionColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                topBar = {
+                    TopBar(
+                        topBarTitle = "Job Search",
 
-                else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding)
-                    ) {
-//                        SearchAppBar2(
-//                            text = searchTextState,
-//                            onTextChange = {
-//                                searchViewModel.updateSearchTextState(newValue = it)
-//                            },
-//                            onCloseClicked = {
-//                                searchViewModel.updateSearchWidgetState(newValue = SearchWidgetState.CLOSED)
-//
-//                            },
-//                            onSearchClicked = {
-//                                Log.d("Searched Text", it)
-//                            },
-//                        )
-//
-//                        JobFilters(currentFilters = jobSearchState.filterOptions,
-////                filterOptions,
-//                            onFilterChanged = { jobSearchViewModel.updateFilterOptions(it) })
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.open()
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Menu,
+                                    contentDescription = "Menu"
+                                )
+                            }
+                        }
+                    )
+                },
+                bottomBar = {
+                    BottomBar(
+                        currentRoute = currentRoute,
+                        navController = navController
+                    )
+                }
+            ) { innerPadding ->
 
-                        LazyColumn(
+                when {
+                    jobSearchState.isLoading -> {
+                        AnimateShimmerJobList(innerPadding)
+                    }
+
+                    jobSearchState.isError -> {
+                        jobSearchState.errorMessage?.let {
+                            ErrorSection(
+                                onRefreshButtonClicked = {
+                                    coroutineScope.launch {
+                                        jobSearchViewModel.fetchJobs()
+                                    }
+                                },
+                                customErrorExceptionUiModel = it
+                            )
+                        }
+                    }
+
+                    else -> {
+
+                        val visibleItems = remember { mutableStateListOf<Boolean>() }
+                        LaunchedEffect(jobSearchState.jobList.size) {
+                            visibleItems.clear()
+                            visibleItems.addAll(List(jobSearchState.jobList.size) { false })
+
+                            jobSearchState.jobList.indices.forEach { index ->
+                                delay(100L * index)
+                                visibleItems[index] = true
+                            }
+                        }
+
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-//                        .weight(1f)
-//                        .padding(innerPadding)
+                                .padding(innerPadding)
                         ) {
-                            // Search App Bar as first item
-                            item {
-                                SearchAppBar2(
-                                    text = searchTextState,
-                                    onTextChange = {
-                                        searchViewModel.updateSearchTextState(newValue = it)
-                                    },
-                                    onCloseClicked = {
-                                        searchViewModel.updateSearchWidgetState(newValue = SearchWidgetState.CLOSED)
-                                    },
-                                    onSearchClicked = {
-                                        Log.d("Searched Text", it)
-                                    },
-                                )
-                            }
 
-                            item {
-                                Text(
-                                    "Categories",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(top = 30.dp)
-                                        .padding(horizontal = 20.dp)
-                                )
-                            }
 
-                            // Filters as sticky header
-                            item {
-                                JobFilters(
-                                    currentFilters = jobSearchState.filterOptions,
-                                    onFilterChanged = { jobSearchViewModel.updateFilterOptions(it) }
-                                )
-                            }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+//                            state = rememberLazyListState()
+                            ) {
 
-                            items( jobSearchState.jobList
-//                        jobList
-                            ) { jobItem ->
-                                val isSaved by produceState(initialValue = false) {
-                                    value = savedJobViewModel.isJobSaved(jobItem.id)
+                                item {
+                                    AnimatedVisibility(
+                                        visible = true,
+                                        enter = fadeIn() + slideInVertically { -40 },
+                                        exit = fadeOut() + slideOutVertically { -40 }
+                                    ){
+                                        SearchAppBar(
+                                            text = searchTextState,
+                                            onTextChange = {
+                                                searchViewModel.updateSearchTextState(newValue = it)
+                                            },
+                                            onSearchClicked = {
+                                                Log.d("Searched Text", it)
+                                            },
+                                        )
+                                    }
+
                                 }
 
-                                JobItem(
-                                    jobUiModel = jobItem,
-                                    onJobItemClicked = {
-                                        onJobItemClicked(it)
-                                    },
-                                    onSave = {savedJobViewModel.saveJob(jobItem)},
-                                    onDelete = {savedJobViewModel.deleteJob(jobItem.id)},
-                                    isSaved = isSaved,
-                                    jobSearchJobItem = true,
-                                    onTrackJob = {}
-                                )
+                                item {
+                                    AnimatedVisibility(
+                                        visible = true,
+                                        enter = fadeIn() + slideInVertically { -20 },
+                                        exit = fadeOut() + slideOutVertically { -20 }
+                                    ){
+                                        Text(
+                                            "Categories",
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(top = 30.dp)
+                                                .padding(horizontal = 20.dp),
+                                            color = MaterialTheme.colorScheme.onPrimary
+                                        )
+                                    }
+
+                                }
+
+                                item {
+                                    AnimatedVisibility(
+                                        visible = true,
+                                        enter = fadeIn() + expandVertically(),
+                                        exit = fadeOut() + shrinkVertically()
+                                    ){
+                                        JobFilters(
+                                            currentFilters = jobSearchState.filterOptions,
+                                            onFilterChanged = { jobSearchViewModel.updateFilterOptions(it) }
+                                        )
+                                    }
+
+                                }
+
+
+                                itemsIndexed(jobSearchState.jobList) { index, jobItem ->
+
+                                    val onSave by rememberUpdatedState { savedJobViewModel.saveJob(jobItem) }
+                                    val onDelete by rememberUpdatedState { savedJobViewModel.deleteJob(jobItem.id) }
+
+
+                                    AnimatedVisibility(
+                                        visible = visibleItems.getOrNull(index) ?: false,
+                                        enter = fadeIn() + slideInVertically { it / 2 },
+                                        exit = fadeOut() + slideOutVertically { it / 2 }
+                                    ){
+
+                                        key(jobItem.id) {
+                                            JobItem(
+                                                jobUiModel = jobItem,
+                                                onJobItemClicked = {
+                                                    onJobItemClicked(it)
+                                                },
+                                                onSave = {
+                                                    coroutineScope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Job Saved Successfully!",
+                                                            actionLabel = "Dismiss",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+
+                                                    }
+                                                    onSave()
+                                                },
+                                                onDelete = onDelete,
+                                                jobSearchJobItem = true,
+                                                onTrackJob = {}
+                                            )
+                                        }
+
+                                    }
+
+                                }
                             }
                         }
                     }
                 }
-            }
 
+            }
         }
+
     }
 }
 
@@ -314,17 +489,12 @@ fun JobFilters(
     val context = LocalContext.current
 
 
-    //
-//    val cornerRadius = 12.dp
     val cornerRadius = 25.dp
     val buttonHeight = 42.dp
     val buttonColors = ButtonDefaults.buttonColors(
-//        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-//        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-        containerColor = Cool1,
+        containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    //
 
     Row(
         modifier = Modifier
@@ -335,32 +505,15 @@ fun JobFilters(
     ) {
         FilterButton(
             text = "Contract Type",
-
-            //
             leadingIcon = Icons.Default.Work,
-            //
-
-//            trailingIcon =
-//            if(expandedContractType){
-//                Icons.Default.ArrowDropUp
-//            }else if(currentFilters.contractType.isEmpty() && !expandedContractType) {
-//                Icons.Default.ArrowDropDown
-//            }else {
-//                Icons.Default.Close
-//            }
-//            ,
-
             expanded = expandedContractType,
             onClick = { expandedContractType = !expandedContractType },
-
-            //
             buttonColors = buttonColors,
             buttonHeight = buttonHeight,
             cornerRadius = cornerRadius,
             filter = currentFilters.contractType,
             onClearFilter = {onFilterChanged(currentFilters.copy(contractType = ""))},
             onExpand = {expandedContractType = true}
-            //
         ) {
             DropdownMenuItem(text = { Text("Permanent") }, onClick = {
                 onFilterChanged(currentFilters.copy(contractType = "permanent"))
@@ -369,7 +522,7 @@ fun JobFilters(
                 onFilterChanged(currentFilters.copy(contractType = "contract"))
                 expandedContractType = false })
 
-            //
+
             DropdownMenuItem(
                 text = { Text("All Types") },
                 onClick = {
@@ -377,28 +530,19 @@ fun JobFilters(
                     expandedContractType = false
                 }
             )
-            //
         }
 
         FilterButton(
             text = "Date posted",
-
-            //
             leadingIcon = Icons.Default.Schedule,
-            //
-//            trailingIcon = Icons.Default.Schedule,
-
             expanded = expandedDate,
             onClick = { expandedDate = !expandedDate },
-
-            //
             buttonColors = buttonColors,
             buttonHeight = buttonHeight,
             cornerRadius = cornerRadius,
             filter = currentFilters.datePosted,
             onClearFilter = {onFilterChanged(currentFilters.copy(datePosted = ""))},
             onExpand = {expandedDate = true}
-            //
         ) {
             DropdownMenuItem(text = { Text("Last 24 hours") }, onClick = {
                 onFilterChanged(currentFilters.copy(datePosted = "24h"))
@@ -422,18 +566,15 @@ fun JobFilters(
 
         FilterButton(
             text = "Contract Time",
-            leadingIcon = Icons.Default.AccessTime,
-//            trailingIcon = Icons.Default.AccessTime,
+            leadingIcon = Icons.Default.WorkHistory,
             expanded = expandedContractTime,
             onClick = { expandedContractTime = !expandedContractTime },
-            //
             buttonColors = buttonColors,
             buttonHeight = buttonHeight,
             cornerRadius = cornerRadius,
             filter = currentFilters.contractTime,
             onClearFilter = {onFilterChanged(currentFilters.copy(contractTime = ""))},
             onExpand = {expandedContractTime = true}
-            //
         ) {
             DropdownMenuItem(text = { Text("Full Time") }, onClick = {
                 onFilterChanged(currentFilters.copy(contractTime = "full_time"))
@@ -442,7 +583,6 @@ fun JobFilters(
                 onFilterChanged(currentFilters.copy(contractTime = "part_time"))
                 expandedContractTime = false })
 
-            //
             DropdownMenuItem(
                 text = { Text("Any") },
                 onClick = {
@@ -450,22 +590,13 @@ fun JobFilters(
                     expandedContractTime = false
                 }
             )
-            //
         }
 
         FilterButton(
             text = "Salary Range",
-
-            //
             leadingIcon = Icons.Default.AttachMoney,
-            //
-//            trailingIcon = Icons.Default.AttachMoney,
-
-
             expanded  = expandedSalary,
             onClick  = { expandedSalary = !expandedSalary },
-
-            //
             buttonColors = buttonColors,
             buttonHeight = buttonHeight,
             cornerRadius = cornerRadius,
@@ -481,9 +612,7 @@ fun JobFilters(
             },
             filter = if(minSalary.isNotEmpty() && maxSalary.isNotEmpty()) minSalary else "",
             onExpand = {expandedSalary = true}
-            //
         ) {
-//
             DropdownMenuItem(
                 text = {
                     Column(
@@ -512,7 +641,7 @@ fun JobFilters(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = TextFieldDefaults.outlinedTextFieldColors(
                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = LightCyan,
+                                    unfocusedBorderColor = DarkCeruleanBlue,
                                 )
                             )
 
@@ -528,63 +657,10 @@ fun JobFilters(
                                 shape = RoundedCornerShape(8.dp),
                                 colors = TextFieldDefaults.outlinedTextFieldColors(
                                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = LightCyan,
+                                    unfocusedBorderColor = DarkCeruleanBlue,
                                 )
                             )
                         }
-
-                        //
-//                        var salaryRange by remember { mutableStateOf(0f..100f) }
-//
-//                        Column(modifier = Modifier.padding(16.dp)) {
-//                            Text(text = "Select Salary Range", style = MaterialTheme.typography.titleSmall)
-//
-//                            Spacer(modifier = Modifier.height(16.dp))
-//
-//                            RangeSlider(
-//                                value = salaryRange,
-//                                onValueChange = { salaryRange = it },
-//                                valueRange = 0f..200f,
-//                                steps = 30
-//                            )
-//
-//                            Spacer(modifier = Modifier.height(8.dp))
-//
-//                            Text(
-//                                text = "Selected: ${salaryRange.start.toInt() * 1000}$ - ${salaryRange.endInclusive.toInt() * 1000}$",
-//                                style = MaterialTheme.typography.titleSmall,
-//                            )
-//                        }
-                        //
-
-                        /////////////////////////////////////////////////
-
-//                        Row(
-//                            modifier = Modifier.fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-//                        ) {
-//                            Button(
-//                                onClick = {
-//                                    onFilterChanged(
-//                                        currentFilters.copy(
-//                                            minSalary = null,
-//                                            maxSalary = null
-//                                        )
-//                                    )
-//                                    minSalary = ""
-//                                    maxSalary = ""
-//                                    expandedSalary = false
-//                                },
-//                                modifier = Modifier.weight(1f),
-//                                colors = ButtonDefaults.buttonColors(
-//                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-//                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-//                                ),
-//                                shape = RoundedCornerShape(8.dp)
-//                            ) {
-//                                Text("Clear")
-//                            }
-
                             Button(
                                 onClick = {
                                     if(minSalary.isEmpty() || maxSalary.isEmpty()){
@@ -600,16 +676,14 @@ fun JobFilters(
                                     }
 
                                 },
-//                                modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(25.dp),
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             ) {
                                 Text("Apply")
                             }
-//                        }
                     }
                 },
-                onClick = { /* Prevent auto-closing */ }
+                onClick = {  }
             )
         }
     }
@@ -620,7 +694,6 @@ fun JobFilters(
 fun FilterButton(
     text: String,
     leadingIcon: ImageVector,
-//    trailingIcon: ImageVector,
     expanded: Boolean,
     onClick: () -> Unit,
     buttonColors: ButtonColors,
@@ -642,7 +715,7 @@ fun FilterButton(
             ,
             border = BorderStroke(
                 1.dp,
-                if (expanded || filter.isNotEmpty()) MaterialTheme.colorScheme.primary else LightCyan
+                if (expanded || filter.isNotEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
             ),
             elevation = ButtonDefaults.buttonElevation(
                 defaultElevation = 0.dp,
@@ -658,19 +731,6 @@ fun FilterButton(
                     contentDescription = null,
                 )
                 Text(text, style = MaterialTheme.typography.labelLarge)
-//                Icon(
-//                    if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
-//                    contentDescription = "Dropdown Arrow",
-//                )
-
-
-//                if(expandedContractType){
-//                Icons.Default.ArrowDropUp
-//            }else if(currentFilters.contractType.isEmpty() && !expandedContractType) {
-//                Icons.Default.ArrowDropDown
-//            }else {
-//                Icons.Default.Close
-//            }
 
                 IconButton(
                     onClick ={
